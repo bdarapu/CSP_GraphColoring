@@ -1,0 +1,146 @@
+#dfsb working - making changes to code in pycharm ; revert to this if that fails
+
+import sys
+sys.setrecursionlimit(1500)
+
+class CSP:
+
+    def __init__(self,vars,domain_values,neighbors):
+        self.vars=vars
+        self.domain_values=domain_values
+        self.neighbors=neighbors
+
+
+
+if __name__ == '__main__':
+
+    out_file = ''
+    in_file=''
+
+    if len(sys.argv) == 3:
+        in_file=open(sys.argv[1],'r')
+        out_file = open(sys.argv[2], 'w')
+
+    else:
+        print('Wrong number of arguments. Usage:\npuzzleSOlver.py <N-1 or 2> <K - 3 0r 4> <INPUT file path> <OUTPUT file path>')
+    #print('n = ' + str(n))
+
+
+    cl = in_file.read().split('\n')
+    #print (cl)
+    board=[]
+    for i in range(len(cl) - 1):
+        y = (cl[i].split('\t'))
+        board.append(y)
+    #print (board)
+    #print(board[0])
+    #print(board[0][0],board[0][1],board[0][2])
+    var=int(board[0][0])
+    num_constraints=int(board[0][1])
+    num_domain=int(board[0][2])
+    vars=[]
+    for i in range(var):
+        vars.append(i)
+    #print(vars)
+
+
+
+    domain_values={}
+    for i in range(var):
+        domain_values[i]=[]
+
+    for i in range (var):
+        for j in range (num_domain):
+            domain_values[i].append(j)
+    #print(domain_values)
+
+
+    constraints=[]
+    for i in range(1,len(board)):
+        constr=[]
+        constr.append(int(board[i][0]))
+        constr.append(int(board[i][1]))
+        constraints.append(constr)
+    #print(constraints)
+
+    neighbors={}
+    for i in range(var):
+        neighbors[i]=[]
+
+    for l in constraints:
+        neighbors[l[0]].append(l[1])
+        neighbors[l[1]].append(l[0])
+    #print (neighbors)
+
+    csp=CSP(vars,domain_values,neighbors)
+
+    # print(csp.vars)
+    # print(csp.domain_values)
+    # print(csp.neighbors)
+
+
+def backtracking_search(csp):
+    return backtrack({},csp)
+
+def select_unassigned_variable(assignment,csp):
+    for v in csp.vars:
+        if v not in assignment:
+            #print (v)
+            return v
+
+def unassign(var,assignment):   # do i need to return assignment
+    if var in assignment:
+        del assignment[var]
+    return assignment
+
+def order_domain_values(var,assignment,csp):
+    domain=csp.domain_values[var][:]
+    #print (domain)
+    return domain
+
+# for the chosen variable var and its assignment value "value" - checks if this "value" is already
+# assigned to the neighbors of var in assignment
+def no_conflicts(csp,var,value,assignment):
+    list=(csp.neighbors).get(var)
+    count=0
+    #c=0
+    for l in list:
+        x=assignment.get(l)
+        if(x!=value):
+            count+=1
+    if(len(list)==count):
+        return 0
+    else:
+        return -1
+
+def assign(var,value,assignment):
+    assignment[var]=value
+    return assignment
+#print(csp.neighbors.get(0))
+
+def backtrack(assignment,csp):
+    if(len(assignment)==len(csp.vars)):
+        return assignment
+    var=select_unassigned_variable(assignment,csp)
+    print("var is", var)
+    for value in order_domain_values(var,assignment,csp):
+        if no_conflicts(csp,var,value,assignment)==0:
+            assignment=assign(var, value, assignment)
+            result=backtrack(assignment,csp)
+            if result is not None:
+                return result
+        assignment=unassign(var,assignment)
+    return None
+
+
+solution=backtracking_search(csp)
+if solution is not None:
+    for i in range(len(solution)):
+        j=(solution.get(i))
+        out_file.write(str(j)+'\n')
+#assignment={0:1,1:3,2:0,6:1}
+#assignment[4]=2
+#print (assignment)
+#order_domain_values(6,assignment,csp)
+#select_unassigned_variable(assignment,csp)
+
